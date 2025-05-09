@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: b4570584714313049bc8db70252762a8
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 655
+  packageName: Dumpster
+  packageVersion: 4.0
+  assetPath: Assets/Dumpster/Materials/dumpster-Material_002__AO_tga.mat
+  uploadId: 25905
