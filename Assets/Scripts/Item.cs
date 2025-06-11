@@ -21,5 +21,7 @@ public class Item : ScriptableObject
 
 public enum ItemType
 {
-
+    Scrap,
+    Ingredient,
+    Consumable
 }

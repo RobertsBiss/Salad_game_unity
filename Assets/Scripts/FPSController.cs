@@ -41,6 +41,11 @@ public class FirstPersonController : MonoBehaviour
     private bool isCrouching = false;
     private float currentHeight;
     private Vector3 currentCameraPosition;
+    private bool canSprint = true; // Added to track sprint availability
+
+    // Movement control flags
+    private bool movementEnabled = true;
+    private bool lookingEnabled = true;
 
     void Start()
     {
@@ -74,11 +79,65 @@ public class FirstPersonController : MonoBehaviour
 
     void Update()
     {
-        bool isGrounded = characterController.isGrounded;
+        // Always update stamina, regardless of movement state - this is the key fix
+        UpdateStamina();
 
-        HandleCrouch();
-        HandleLooking();
+        // Only handle movement and looking if enabled
+        if (movementEnabled)
+        {
+            bool isGrounded = characterController.isGrounded;
+            HandleCrouch();
+            HandleMovement(isGrounded);
+        }
+        else
+        {
+            // Even when movement is disabled, we should stop sprinting
+            isSprinting = false;
+        }
 
+        if (lookingEnabled)
+        {
+            HandleLooking();
+        }
+    }
+
+    void UpdateStamina()
+    {
+        // Check if player is trying to sprint (holding sprint key)
+        bool tryingToSprint = movementEnabled && Input.GetKey(KeyCode.LeftShift) && !isCrouching;
+
+        // Handle stamina based on current sprint state
+        if (isSprinting && movementEnabled)
+        {
+            // Drain stamina when actually sprinting
+            currentStamina -= staminaDrainRate * Time.deltaTime;
+            if (currentStamina <= 0)
+            {
+                currentStamina = 0;
+                canSprint = false; // Prevent further sprinting when stamina is depleted
+            }
+        }
+        else if (!tryingToSprint)
+        {
+            // Only regenerate stamina when NOT trying to sprint
+            // This prevents stamina regen when holding sprint but unable to sprint
+            if (currentStamina < maxStamina)
+            {
+                currentStamina += staminaRegenRate * Time.deltaTime;
+                currentStamina = Mathf.Clamp(currentStamina, 0f, maxStamina);
+            }
+
+            // Only allow sprinting again when stamina is above the minimum threshold
+            if (currentStamina > minStaminaToSprint)
+            {
+                canSprint = true;
+            }
+        }
+        // If tryingToSprint is true but isSprinting is false, don't regenerate stamina
+    }
+
+    void HandleMovement(bool isGrounded)
+    {
         if (isGrounded)
         {
             float horizontalInput = Input.GetAxisRaw("Horizontal");
@@ -95,27 +154,23 @@ public class FirstPersonController : MonoBehaviour
 
             bool wantsToSprint = Input.GetKey(KeyCode.LeftShift) && !isCrouching && move != Vector3.zero;
 
-            if (wantsToSprint && currentStamina > minStaminaToSprint)
+            // Handle stamina and sprint availability - check if we can actually sprint
+            if (wantsToSprint && !isCrouching && currentStamina > 0 && canSprint)
             {
                 isSprinting = true;
                 currentSpeed = runSpeed;
-                currentStamina -= staminaDrainRate * Time.deltaTime;
             }
             else
             {
                 isSprinting = false;
-                currentSpeed = walkSpeed;
-                if (!wantsToSprint && currentStamina < maxStamina)
+                if (isCrouching)
                 {
-                    currentStamina += staminaRegenRate * Time.deltaTime;
+                    currentSpeed = crouchSpeed;
                 }
-            }
-
-            currentStamina = Mathf.Clamp(currentStamina, 0f, maxStamina);
-
-            if (isCrouching)
-            {
-                currentSpeed = crouchSpeed;
+                else
+                {
+                    currentSpeed = walkSpeed;
+                }
             }
 
             moveDirection = move * currentSpeed;
@@ -176,6 +231,28 @@ public class FirstPersonController : MonoBehaviour
         rotationX -= currentLookDelta.y;
         rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
         cameraHolder.localRotation = Quaternion.Euler(rotationX, 0, 0);
+    }
+
+    // Public methods to control movement and looking separately
+    public void SetMovementEnabled(bool enabled)
+    {
+        movementEnabled = enabled;
+        if (!enabled)
+        {
+            // Stop sprinting when movement is disabled
+            isSprinting = false;
+        }
+    }
+
+    public void SetLookingEnabled(bool enabled)
+    {
+        lookingEnabled = enabled;
+    }
+
+    public void SetControlsEnabled(bool enabled)
+    {
+        SetMovementEnabled(enabled);
+        SetLookingEnabled(enabled);
     }
 
     public void ToggleCursorLock(bool locked)

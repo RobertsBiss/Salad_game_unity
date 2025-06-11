@@ -5,7 +5,7 @@ public class OpenInventory : MonoBehaviour
     [Header("References")]
     [SerializeField] private GameObject mainInventoryGroup;  // Assign the MainInventoryGroup GameObject
     [SerializeField] private KeyCode toggleKey = KeyCode.I;  // Key to toggle inventory
-    [SerializeField] private MonoBehaviour cameraController; // Assign your camera controller script here
+    [SerializeField] private FirstPersonController firstPersonController; // Assign your FirstPersonController here
 
     private bool isInventoryOpen = false;
 
@@ -15,6 +15,12 @@ public class OpenInventory : MonoBehaviour
         if (mainInventoryGroup != null)
         {
             mainInventoryGroup.SetActive(false);
+        }
+
+        // Find FirstPersonController if not assigned
+        if (firstPersonController == null)
+        {
+            firstPersonController = FindObjectOfType<FirstPersonController>();
         }
 
         // Lock cursor at start
@@ -35,7 +41,7 @@ public class OpenInventory : MonoBehaviour
     {
         if (mainInventoryGroup == null)
         {
-            Debug.LogError("InventoryManager: Cannot toggle - MainInventoryGroup is null!");
+            Debug.LogError("OpenInventory: Cannot toggle - MainInventoryGroup is null!");
             return;
         }
 
@@ -43,13 +49,40 @@ public class OpenInventory : MonoBehaviour
         mainInventoryGroup.SetActive(isInventoryOpen);
 
         // Toggle cursor state
-        Cursor.lockState = isInventoryOpen ? CursorLockMode.None : CursorLockMode.Locked;
-        Cursor.visible = isInventoryOpen;
-
-        // Enable/Disable camera controller
-        if (cameraController != null)
+        if (isInventoryOpen)
         {
-            cameraController.enabled = !isInventoryOpen;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+
+        // Enable/Disable player controls (but keep the component enabled for stamina updates)
+        if (firstPersonController != null)
+        {
+            firstPersonController.SetControlsEnabled(!isInventoryOpen);
+        }
+        else
+        {
+            Debug.LogWarning("OpenInventory: FirstPersonController reference is missing!");
+        }
+    }
+
+    // Public method to check if inventory is open (useful for other scripts)
+    public bool IsInventoryOpen()
+    {
+        return isInventoryOpen;
+    }
+
+    // Public method to close inventory (useful for other scripts)
+    public void CloseInventory()
+    {
+        if (isInventoryOpen)
+        {
+            ToggleInventory();
         }
     }
 }
