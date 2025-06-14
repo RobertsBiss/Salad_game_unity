@@ -8,17 +8,42 @@ public class ItemPickup : MonoBehaviour
     public InventoryManager inventoryManager;
     public Item item; // Changed from 'sodaCanItem' to 'item' - assign this in Inspector
     public float pickupRange = 3f;
+    public float promptRange = 5f; // Distance at which the prompt becomes visible
     public KeyCode pickupKey = KeyCode.E;
 
     [Header("UI Feedback (Optional)")]
-    public GameObject pickupPrompt; // Optional UI element to show "Press E to pickup"
+    public GameObject pickupPrompt; // Instance reference to the prompt
+    private static GameObject staticPickupPrompt; // Static reference to the prompt, shared by all items
+    public string pickupPromptText = "[E] Pick up"; // Text to show in the prompt
+
+    [Header("Debug Settings")]
+    public bool showDebugLogs = false; // Enable to see debug messages
 
     [Header("Hand Display Configuration")]
     [SerializeField] private bool autoConfigureFromPrefab = true; // Automatically configure the Item's hand settings based on this prefab
     [SerializeField] private bool forceReconfigure = false; // Force reconfigure even if settings exist
     [SerializeField] private Vector3 handPositionOffset = Vector3.zero;
     [SerializeField] private Vector3 handRotationOffset = Vector3.zero;
-    [SerializeField] private Vector3 handScaleMultiplier = Vector3.one;
+    [SerializeField] public Vector3 handScaleMultiplier = Vector3.one;
+
+    // Public properties to access hand display settings
+    public Vector3 HandPositionOffset
+    {
+        get { return handPositionOffset; }
+        set { handPositionOffset = value; }
+    }
+
+    public Vector3 HandRotationOffset
+    {
+        get { return handRotationOffset; }
+        set { handRotationOffset = value; }
+    }
+
+    public Vector3 HandScaleMultiplier
+    {
+        get { return handScaleMultiplier; }
+        set { handScaleMultiplier = value; }
+    }
 
     [Header("Visual Feedback")]
     [SerializeField] private GameObject pickupEffect; // Optional pickup effect
@@ -32,6 +57,7 @@ public class ItemPickup : MonoBehaviour
     private Vector3 originalWorldScale; // Store the original scale for world dropping
     private Vector3 calculatedHandScale; // Store the calculated scale for hand display
     private Transform playerTransform; // Cache player transform for performance
+    private Camera playerCamera; // Cache player camera for raycasting
 
     void Start()
     {
@@ -45,16 +71,29 @@ public class ItemPickup : MonoBehaviour
             AutoConfigureItemSettings();
         }
 
-        // Hide pickup prompt initially
-        if (pickupPrompt != null)
-            pickupPrompt.SetActive(false);
+        // Set the tag to "Item" if not already set
+        if (gameObject.tag != "Item")
+        {
+            gameObject.tag = "Item";
+        }
 
         // Find inventory manager if not assigned
         if (inventoryManager == null)
             inventoryManager = FindObjectOfType<InventoryManager>();
 
-        // Find player transform for distance checking
+        // Find player transform and camera for distance checking
         FindPlayer();
+
+        // Set up the static prompt reference if this is the first item
+        if (staticPickupPrompt == null && pickupPrompt != null)
+        {
+            staticPickupPrompt = pickupPrompt;
+            staticPickupPrompt.SetActive(false);
+            if (showDebugLogs)
+            {
+                Debug.Log($"Set up static prompt reference from {gameObject.name}");
+            }
+        }
     }
 
     void FindPlayer()
@@ -64,6 +103,7 @@ public class ItemPickup : MonoBehaviour
         if (playerObject != null)
         {
             playerTransform = playerObject.transform;
+            playerCamera = playerObject.GetComponentInChildren<Camera>();
             return;
         }
 
@@ -72,6 +112,7 @@ public class ItemPickup : MonoBehaviour
         if (playerController != null)
         {
             playerTransform = playerController.transform;
+            playerCamera = playerController.GetComponentInChildren<Camera>();
             return;
         }
 
@@ -91,7 +132,7 @@ public class ItemPickup : MonoBehaviour
 
     void CheckPlayerDistance()
     {
-        if (playerTransform == null)
+        if (playerTransform == null || playerCamera == null)
         {
             // Try to find player again if we lost reference
             FindPlayer();
@@ -102,14 +143,73 @@ public class ItemPickup : MonoBehaviour
         bool wasInRange = playerInRange;
         playerInRange = distanceToPlayer <= pickupRange;
 
-        // Handle state changes
-        if (playerInRange && !wasInRange)
+        // Cast a ray from the camera to check if we're looking at any item
+        Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
+        RaycastHit hit;
+
+        // Use a layer mask that includes all layers except the player's layer
+        int layerMask = ~(1 << LayerMask.NameToLayer("Player"));
+
+        if (Physics.Raycast(ray, out hit, promptRange, layerMask))
         {
-            OnPlayerEnterRange();
+            if (showDebugLogs)
+            {
+                Debug.Log($"Ray hit: {hit.transform.name} at distance {hit.distance}");
+                Debug.Log($"Hit object tag: {hit.transform.tag}");
+            }
+
+            // Check if the ray hit an item
+            if (hit.transform.CompareTag("Item"))
+            {
+                // Only show prompt if we're within range of the hit item
+                float hitDistance = Vector3.Distance(hit.transform.position, playerTransform.position);
+                if (hitDistance <= promptRange)
+                {
+                    // We're looking at an item within range
+                    if (staticPickupPrompt != null)
+                    {
+                        staticPickupPrompt.SetActive(true);
+                        // Update prompt text if it has a Text component
+                        UnityEngine.UI.Text promptText = staticPickupPrompt.GetComponentInChildren<UnityEngine.UI.Text>();
+                        if (promptText != null)
+                        {
+                            promptText.text = pickupPromptText;
+                        }
+
+                        if (showDebugLogs)
+                        {
+                            Debug.Log($"Showing prompt for {hit.transform.name} at distance {hitDistance}");
+                        }
+                    }
+                    else if (showDebugLogs)
+                    {
+                        Debug.LogWarning("Static prompt reference is null!");
+                    }
+                    return;
+                }
+                else if (showDebugLogs)
+                {
+                    Debug.Log($"Item {hit.transform.name} is too far: {hitDistance} > {promptRange}");
+                }
+            }
+            else if (showDebugLogs)
+            {
+                Debug.Log($"Hit object is not an item. Tag: {hit.transform.tag}");
+            }
         }
-        else if (!playerInRange && wasInRange)
+        else if (showDebugLogs)
         {
-            OnPlayerExitRange();
+            Debug.Log("No ray hit within range");
+        }
+
+        // Hide prompt if we're not looking at an item or not in range
+        if (staticPickupPrompt != null)
+        {
+            staticPickupPrompt.SetActive(false);
+            if (showDebugLogs)
+            {
+                Debug.Log("Hiding prompt - no item in view or out of range");
+            }
         }
     }
 
@@ -159,14 +259,14 @@ public class ItemPickup : MonoBehaviour
     // These methods are called by the distance checking system
     public void OnPlayerEnterRange()
     {
-        if (pickupPrompt != null)
-            pickupPrompt.SetActive(true);
+        if (staticPickupPrompt != null)
+            staticPickupPrompt.SetActive(true);
     }
 
     public void OnPlayerExitRange()
     {
-        if (pickupPrompt != null)
-            pickupPrompt.SetActive(false);
+        if (staticPickupPrompt != null)
+            staticPickupPrompt.SetActive(false);
     }
 
     // Keep the original trigger methods for backward compatibility (optional)
@@ -190,11 +290,13 @@ public class ItemPickup : MonoBehaviour
     {
         if (item != null && inventoryManager != null)
         {
-            // Create a custom ItemScaleData to pass both scales
+            // Create a custom ItemScaleData to pass both scales AND position/rotation offsets
             ItemScaleData scaleData = new ItemScaleData
             {
                 worldScale = originalWorldScale,
-                handScale = calculatedHandScale
+                handScale = calculatedHandScale,
+                handPositionOffset = handPositionOffset,
+                handRotationOffset = handRotationOffset
             };
 
             // Pass both scales to the inventory manager
@@ -204,8 +306,8 @@ public class ItemPickup : MonoBehaviour
                 Debug.Log("Picked up: " + item.name);
                 PlayPickupEffects();
 
-                if (pickupPrompt != null)
-                    pickupPrompt.SetActive(false);
+                if (staticPickupPrompt != null)
+                    staticPickupPrompt.SetActive(false);
 
                 Destroy(gameObject); // Remove this object from the scene
             }
@@ -236,24 +338,24 @@ public class ItemPickup : MonoBehaviour
         }
     }
 
-    // Optional: Draw pickup range in Scene view for debugging
-    void OnDrawGizmosSelected()
+    // Optional: Draw pickup and prompt ranges in Scene view for debugging
+    void OnDrawGizmos()
     {
-        Gizmos.color = playerInRange ? Color.green : Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, pickupRange);
-
-        if (playerTransform != null)
+        if (playerCamera != null)
         {
+            // Draw the ray in the scene view
             Gizmos.color = Color.red;
-            Gizmos.DrawLine(transform.position, playerTransform.position);
+            Gizmos.DrawRay(playerCamera.transform.position, playerCamera.transform.forward * promptRange);
         }
     }
 }
 
-// New data structure to hold both scale types
+// Updated data structure to hold position and rotation offsets as well
 [System.Serializable]
 public class ItemScaleData
 {
-    public Vector3 worldScale = Vector3.one;  // Scale when dropped in world
-    public Vector3 handScale = Vector3.one;   // Scale when held in hand
+    public Vector3 worldScale = Vector3.one;           // Scale when dropped in world
+    public Vector3 handScale = Vector3.one;            // Scale when held in hand
+    public Vector3 handPositionOffset = Vector3.zero;  // Position offset when held in hand
+    public Vector3 handRotationOffset = Vector3.zero;  // Rotation offset when held in hand
 }

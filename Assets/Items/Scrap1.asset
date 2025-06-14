@@ -16,4 +16,4 @@ MonoBehaviour:
   range: {x: 5, y: 4}
   stackable: 1
   image: {fileID: 21300000, guid: 4e18ff24e59ad68449230febdab5d1f2, type: 3}
-  itemPrefab: {fileID: 919132149155446097, guid: 20ea38df95183a547b3841f35ebe1a5f, type: 3}
+  itemPrefab: {fileID: 4493272474028995325, guid: 4b0c703239b06764684b7a5d54df0f12, type: 3}

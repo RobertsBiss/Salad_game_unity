@@ -82,12 +82,16 @@ public class FirstPersonController : MonoBehaviour
         // Always update stamina, regardless of movement state - this is the key fix
         UpdateStamina();
 
-        // Only handle movement and looking if enabled
+        bool isGrounded = characterController.isGrounded;
+
+        // Always handle gravity and vertical movement, even when movement is disabled
+        HandleGravityAndVerticalMovement(isGrounded);
+
+        // Only handle horizontal movement and crouching if movement is enabled
         if (movementEnabled)
         {
-            bool isGrounded = characterController.isGrounded;
             HandleCrouch();
-            HandleMovement(isGrounded);
+            HandleHorizontalMovement(isGrounded);
         }
         else
         {
@@ -136,7 +140,22 @@ public class FirstPersonController : MonoBehaviour
         // If tryingToSprint is true but isSprinting is false, don't regenerate stamina
     }
 
-    void HandleMovement(bool isGrounded)
+    void HandleGravityAndVerticalMovement(bool isGrounded)
+    {
+        // Always apply gravity, regardless of movement state
+        moveDirection.y -= gravity * Time.deltaTime;
+
+        // Ground the player when on ground
+        if (isGrounded && moveDirection.y < 0)
+        {
+            moveDirection.y = -0.3f;
+        }
+
+        // Always move the character (this includes both horizontal and vertical movement)
+        characterController.Move(moveDirection * Time.deltaTime);
+    }
+
+    void HandleHorizontalMovement(bool isGrounded)
     {
         if (isGrounded)
         {
@@ -173,22 +192,23 @@ public class FirstPersonController : MonoBehaviour
                 }
             }
 
-            moveDirection = move * currentSpeed;
+            // Set horizontal movement (preserve existing Y velocity)
+            Vector3 horizontalMovement = move * currentSpeed;
+            moveDirection.x = horizontalMovement.x;
+            moveDirection.z = horizontalMovement.z;
 
+            // Handle jumping
             if (canJump && !isCrouching && Input.GetButtonDown("Jump"))
             {
                 moveDirection.y = jumpForce;
             }
         }
-
-        moveDirection.y -= gravity * Time.deltaTime;
-
-        if (isGrounded && moveDirection.y < 0)
+        else
         {
-            moveDirection.y = -0.3f;
+            // When not grounded and movement is enabled, preserve horizontal momentum
+            // but don't allow new input (realistic air movement)
+            // You can modify this behavior if you want more air control
         }
-
-        characterController.Move(moveDirection * Time.deltaTime);
     }
 
     void HandleCrouch()
@@ -241,6 +261,9 @@ public class FirstPersonController : MonoBehaviour
         {
             // Stop sprinting when movement is disabled
             isSprinting = false;
+            // When disabling movement, zero out horizontal movement but preserve vertical
+            moveDirection.x = 0;
+            moveDirection.z = 0;
         }
     }
 

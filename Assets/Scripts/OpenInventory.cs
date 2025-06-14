@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class OpenInventory : MonoBehaviour
 {
@@ -6,6 +7,9 @@ public class OpenInventory : MonoBehaviour
     [SerializeField] private GameObject mainInventoryGroup;  // Assign the MainInventoryGroup GameObject
     [SerializeField] private KeyCode toggleKey = KeyCode.I;  // Key to toggle inventory
     [SerializeField] private FirstPersonController firstPersonController; // Assign your FirstPersonController here
+
+    [Header("UI Interaction Fix")]
+    [SerializeField] private GameObject interactionPromptObject; // Assign your InteractionPrompt GameObject here
 
     private bool isInventoryOpen = false;
 
@@ -23,9 +27,22 @@ public class OpenInventory : MonoBehaviour
             firstPersonController = FindObjectOfType<FirstPersonController>();
         }
 
+        // Setup interaction prompt canvas group
+        SetupInteractionPrompt();
+
         // Lock cursor at start
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+    }
+
+    void SetupInteractionPrompt()
+    {
+        // Find interaction prompt if not assigned
+        if (interactionPromptObject == null)
+        {
+            // Try to find it by name
+            interactionPromptObject = GameObject.Find("InteractionPrompt");
+        }
     }
 
     void Update()
@@ -34,6 +51,18 @@ public class OpenInventory : MonoBehaviour
         if (Input.GetKeyDown(toggleKey))
         {
             ToggleInventory();
+        }
+
+        // Manage interaction prompt blocking based on inventory state
+        UpdateInteractionPromptBlocking();
+    }
+
+    void UpdateInteractionPromptBlocking()
+    {
+        if (interactionPromptObject != null)
+        {
+            // Simply disable the entire interaction prompt when inventory is open
+            interactionPromptObject.SetActive(!isInventoryOpen);
         }
     }
 
@@ -69,6 +98,9 @@ public class OpenInventory : MonoBehaviour
         {
             Debug.LogWarning("OpenInventory: FirstPersonController reference is missing!");
         }
+
+        // Update interaction prompt blocking
+        UpdateInteractionPromptBlocking();
     }
 
     // Public method to check if inventory is open (useful for other scripts)

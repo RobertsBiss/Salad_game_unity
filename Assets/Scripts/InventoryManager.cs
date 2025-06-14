@@ -116,17 +116,34 @@ public class InventoryManager : MonoBehaviour
             {
                 currentHeldItem = Instantiate(itemInSlot.item.itemPrefab, itemHolder);
 
-                // Position: local to holder
-                currentHeldItem.transform.localPosition = Vector3.zero;
+                // Get scale data for this item if available
+                ItemScaleData scaleData = null;
+                if (itemScaleData.ContainsKey(itemInSlot.item))
+                {
+                    scaleData = itemScaleData[itemInSlot.item];
+                }
 
-                // Rotation: upright
-                currentHeldItem.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
+                // Position: apply offset if available, otherwise default to zero
+                Vector3 targetPosition = Vector3.zero;
+                if (scaleData != null)
+                {
+                    targetPosition = scaleData.handPositionOffset;
+                }
+                currentHeldItem.transform.localPosition = targetPosition;
+
+                // Rotation: apply offset if available, otherwise default to upright
+                Vector3 targetRotation = Vector3.zero;
+                if (scaleData != null)
+                {
+                    targetRotation = scaleData.handRotationOffset;
+                }
+                currentHeldItem.transform.localRotation = Quaternion.Euler(targetRotation);
 
                 // Scale: use hand scale if available, otherwise default
                 Vector3 targetScale = Vector3.one * 7f; // Default fallback
-                if (itemScaleData.ContainsKey(itemInSlot.item))
+                if (scaleData != null)
                 {
-                    targetScale = itemScaleData[itemInSlot.item].handScale;
+                    targetScale = scaleData.handScale;
                 }
                 currentHeldItem.transform.localScale = targetScale;
 
@@ -222,7 +239,7 @@ public class InventoryManager : MonoBehaviour
             pickup = droppedItem.AddComponent<ItemPickup>();
             pickup.inventoryManager = this;
             pickup.item = item;
-            pickup.pickupRange = 3f;
+            pickup.pickupRange = 0.5f;
             pickup.pickupKey = KeyCode.E;
         }
 
@@ -296,7 +313,9 @@ public class InventoryManager : MonoBehaviour
         ItemScaleData scaleData = new ItemScaleData
         {
             worldScale = originalScale,
-            handScale = originalScale * 7f // Apply the old scaling logic
+            handScale = originalScale * 7f, // Apply the old scaling logic
+            handPositionOffset = Vector3.zero,
+            handRotationOffset = Vector3.zero
         };
 
         return AddItemWithScales(item, scaleData);
