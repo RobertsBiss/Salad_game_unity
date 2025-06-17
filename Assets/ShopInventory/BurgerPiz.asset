@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e266f4a25d9c78c44afc54051497d395, type: 3}
+  m_Name: BurgerPiz
+  m_EditorClassIdentifier: 
+  items:
+  - item: {fileID: 11400000, guid: dd9d84f8174266f40be7fcaed3c748d9, type: 2}
+    price: 4
+    quantity: 67
+  - item: {fileID: 11400000, guid: a66ca6de7c7c1f1499c24d8d2f2bd267, type: 2}
+    price: 2
+    quantity: 64
+  - item: {fileID: 11400000, guid: 5b1c4523ddb54ff4fa7ff2339d3c0d53, type: 2}
+    price: 3
+    quantity: 64

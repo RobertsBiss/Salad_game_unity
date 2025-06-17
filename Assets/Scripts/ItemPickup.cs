@@ -45,6 +45,8 @@ public class ItemPickup : MonoBehaviour
         set { handScaleMultiplier = value; }
     }
 
+    public Vector3 HandScale => calculatedHandScale;
+
     [Header("Visual Feedback")]
     [SerializeField] private GameObject pickupEffect; // Optional pickup effect
     [SerializeField] private AudioClip pickupSound; // Optional pickup sound

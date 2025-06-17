@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1955b9a1479cb884b8abcce8429ecf8d, type: 3}
+  m_Name: Cabbage
+  m_EditorClassIdentifier: 
+  type: 1
+  range: {x: 5, y: 4}
+  stackable: 1
+  image: {fileID: 21300000, guid: 314d117b608a8ac4ab92df11d99a3525, type: 3}
+  itemPrefab: {fileID: 7044362036568236756, guid: 74b79e4cfd8c13744a0a66d03807ecf2, type: 3}
+  valueRange: {x: 0, y: 0}
+  useRandomValue: 0
+  fixedValue: 0

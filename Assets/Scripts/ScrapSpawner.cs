@@ -105,10 +105,6 @@ public class ScrapSpawner : MonoBehaviour
         if (crateController.IsOpen && crateController.ScrapCount > 0)
         {
             wasWatchingForSale = true;
-            if (showDebugLogs)
-            {
-                Debug.Log($"ScrapSpawner: Watching for sale - crate has {crateController.ScrapCount} items");
-            }
         }
 
         // Check if items were actually sold (sold count increased)

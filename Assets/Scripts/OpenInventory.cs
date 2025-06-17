@@ -11,6 +11,9 @@ public class OpenInventory : MonoBehaviour
     [Header("UI Interaction Fix")]
     [SerializeField] private GameObject interactionPromptObject; // Assign your InteractionPrompt GameObject here
 
+    [Header("Crosshair")]
+    [SerializeField] private GameObject crosshairImage; // Assign your crosshair image here
+
     private bool isInventoryOpen = false;
 
     void Start()
@@ -33,6 +36,12 @@ public class OpenInventory : MonoBehaviour
         // Lock cursor at start
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        // Make sure crosshair is visible at start
+        if (crosshairImage != null)
+        {
+            crosshairImage.SetActive(true);
+        }
     }
 
     void SetupInteractionPrompt()
@@ -66,8 +75,27 @@ public class OpenInventory : MonoBehaviour
         }
     }
 
+    private bool IsAnyShopOpen()
+    {
+        ShopTrigger[] shopTriggers = FindObjectsOfType<ShopTrigger>();
+        foreach (var shopTrigger in shopTriggers)
+        {
+            if (shopTrigger != null && shopTrigger.mainShop != null && shopTrigger.mainShop.activeSelf)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void ToggleInventory()
     {
+        // Don't allow inventory to open if any shop is open
+        if (IsAnyShopOpen())
+        {
+            return;
+        }
+
         if (mainInventoryGroup == null)
         {
             Debug.LogError("OpenInventory: Cannot toggle - MainInventoryGroup is null!");
@@ -101,6 +129,9 @@ public class OpenInventory : MonoBehaviour
 
         // Update interaction prompt blocking
         UpdateInteractionPromptBlocking();
+
+        // Update crosshair visibility
+        UpdateCrosshairVisibility();
     }
 
     // Public method to check if inventory is open (useful for other scripts)
@@ -115,6 +146,17 @@ public class OpenInventory : MonoBehaviour
         if (isInventoryOpen)
         {
             ToggleInventory();
+        }
+    }
+
+    // Public method to update crosshair visibility
+    public void UpdateCrosshairVisibility()
+    {
+        if (crosshairImage != null)
+        {
+            // Hide crosshair if inventory is open or any shop is open
+            bool shouldShowCrosshair = !isInventoryOpen && !IsAnyShopOpen();
+            crosshairImage.SetActive(shouldShowCrosshair);
         }
     }
 }

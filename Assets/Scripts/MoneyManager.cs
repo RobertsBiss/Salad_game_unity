@@ -66,7 +66,7 @@ public class MoneyManager : MonoBehaviour
     {
         if (moneyText != null)
         {
-            moneyText.text = "Balance " + playerMoney + "$";
+            moneyText.text = "$" + playerMoney;
         }
     }
 

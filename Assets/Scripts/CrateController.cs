@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro; // Add TextMeshPro namespace
 
 public class CrateController : MonoBehaviour
 {
@@ -17,6 +18,7 @@ public class CrateController : MonoBehaviour
     [SerializeField] private float interactionRange = 3f;
     [SerializeField] private KeyCode interactionKey = KeyCode.E;
     [SerializeField] private string playerTag = "Player";
+    [SerializeField] private float lookAngleThreshold = 30f; // Maximum angle between player's look direction and direction to crate
 
     [Header("Scrap Collection Settings")]
     [SerializeField] private float scrapCheckRadius = 1f; // Radius to check for scrap items inside crate
@@ -30,10 +32,10 @@ public class CrateController : MonoBehaviour
     [SerializeField] private MoneyManager moneyManager; // Reference to the MoneyManager
 
     [Header("UI Feedback (Optional)")]
-    [SerializeField] private GameObject interactionPrompt; // Optional UI element to show "Press E to open/close"
-    [SerializeField] private string openPromptText = "Press E to open crate";
-    [SerializeField] private string closePromptText = "Press E to close crate";
-    [SerializeField] private string sellPromptText = "Press E to sell scrap";
+    [SerializeField] private TextMeshProUGUI interactionPrompt; // Changed to TextMeshProUGUI
+    [SerializeField] private string openPromptText = "[E] Open";
+    [SerializeField] private string closePromptText = "[E] Close";
+    [SerializeField] private string sellPromptText = "[E] Sell Scrap";
 
     [Header("Audio (Optional)")]
     [SerializeField] private AudioClip openSound;
@@ -43,6 +45,9 @@ public class CrateController : MonoBehaviour
 
     [Header("Visual Effects (Optional)")]
     [SerializeField] private GameObject sellEffect; // Optional particle effect when selling
+
+    [Header("Debug Settings")]
+    [SerializeField] private bool showDebugLogs = true;
 
     // Private variables
     private bool isOpen = false;
@@ -108,7 +113,7 @@ public class CrateController : MonoBehaviour
 
         // Hide interaction prompt initially
         if (interactionPrompt != null)
-            interactionPrompt.SetActive(false);
+            interactionPrompt.gameObject.SetActive(false);
 
         // Find player
         FindPlayer();
@@ -241,7 +246,12 @@ public class CrateController : MonoBehaviour
 
         float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
         bool wasInRange = playerInRange;
-        playerInRange = distanceToPlayer <= interactionRange;
+
+        // Check if player is looking at the crate
+        bool isLookingAtCrate = IsPlayerLookingAtCrate();
+
+        // Player is in range only if they're close enough AND looking at the crate
+        playerInRange = distanceToPlayer <= interactionRange && isLookingAtCrate;
 
         // Handle state changes
         if (playerInRange && !wasInRange)
@@ -254,11 +264,28 @@ public class CrateController : MonoBehaviour
         }
     }
 
+    bool IsPlayerLookingAtCrate()
+    {
+        if (playerTransform == null) return false;
+
+        // Get the direction from player to crate
+        Vector3 directionToCrate = (transform.position - playerTransform.position).normalized;
+
+        // Get the player's forward direction
+        Vector3 playerForward = playerTransform.forward;
+
+        // Calculate the angle between the two directions
+        float angle = Vector3.Angle(playerForward, directionToCrate);
+
+        // Player is looking at crate if the angle is less than the threshold
+        return angle <= lookAngleThreshold;
+    }
+
     void OnPlayerEnterRange()
     {
         if (interactionPrompt != null && !isAnimating)
         {
-            interactionPrompt.SetActive(true);
+            interactionPrompt.gameObject.SetActive(true);
             // Update prompt text based on current state
             UpdatePromptText();
         }
@@ -268,7 +295,7 @@ public class CrateController : MonoBehaviour
     {
         if (interactionPrompt != null)
         {
-            interactionPrompt.SetActive(false);
+            interactionPrompt.gameObject.SetActive(false);
         }
     }
 
@@ -276,33 +303,8 @@ public class CrateController : MonoBehaviour
     {
         if (interactionPrompt != null)
         {
-            // If you have a Text component on the prompt, update it
-            UnityEngine.UI.Text promptText = interactionPrompt.GetComponentInChildren<UnityEngine.UI.Text>();
-            if (promptText != null)
-            {
-                string baseText;
-
-                if (isOpen)
-                {
-                    // When open, show sell prompt if there are items, otherwise close prompt
-                    if (scrapCount > 0)
-                    {
-                        float estimatedValue = GetEstimatedTotalScrapValue();
-                        baseText = $"{sellPromptText} ({scrapCount} items - ~${estimatedValue:F0})";
-                    }
-                    else
-                    {
-                        baseText = closePromptText;
-                    }
-                }
-                else
-                {
-                    // When closed, show open prompt
-                    baseText = openPromptText;
-                }
-
-                promptText.text = baseText;
-            }
+            string baseText = isOpen ? closePromptText : openPromptText;
+            interactionPrompt.text = baseText;
         }
     }
 
@@ -474,7 +476,7 @@ public class CrateController : MonoBehaviour
 
         // Hide interaction prompt during animation
         if (interactionPrompt != null)
-            interactionPrompt.SetActive(false);
+            interactionPrompt.gameObject.SetActive(false);
 
         Vector3 startRotation = crateTop.localEulerAngles;
         float elapsedTime = 0f;
@@ -512,7 +514,7 @@ public class CrateController : MonoBehaviour
         // Show interaction prompt again if player is still in range
         if (playerInRange && interactionPrompt != null)
         {
-            interactionPrompt.SetActive(true);
+            interactionPrompt.gameObject.SetActive(true);
             UpdatePromptText();
         }
 
@@ -663,5 +665,44 @@ public class CrateController : MonoBehaviour
         Gizmos.matrix = transform.localToWorldMatrix;
         Gizmos.DrawWireCube(Vector3.zero, new Vector3(2f, 1.5f, 2f)); // Adjust size based on your crate
         Gizmos.matrix = Matrix4x4.identity;
+    }
+
+    // Update OnDrawGizmos to show the look angle
+    void OnDrawGizmos()
+    {
+        // Draw interaction range
+        Gizmos.color = playerInRange ? Color.green : Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, interactionRange);
+
+        if (playerTransform != null)
+        {
+            // Draw line to player
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(transform.position, playerTransform.position);
+
+            // Draw player's forward direction
+            Gizmos.color = Color.blue;
+            Gizmos.DrawRay(playerTransform.position, playerTransform.forward * 2f);
+
+            // Draw look angle threshold
+            if (playerInRange)
+            {
+                Gizmos.color = Color.cyan;
+                Vector3 directionToCrate = (transform.position - playerTransform.position).normalized;
+                Gizmos.DrawRay(playerTransform.position, directionToCrate * 2f);
+            }
+        }
+
+        // Draw rotation axis
+        Gizmos.color = Color.blue;
+        Vector3 axisDirection = transform.TransformDirection(rotationAxis);
+        Gizmos.DrawRay(transform.position, axisDirection * 2f);
+
+        // Draw scrap collection zone
+        if (crateCollectionZone != null)
+        {
+            Gizmos.color = scrapCount > 0 ? Color.green : Color.cyan;
+            Gizmos.DrawWireSphere(crateCollectionZone.position, scrapCheckRadius);
+        }
     }
 }
