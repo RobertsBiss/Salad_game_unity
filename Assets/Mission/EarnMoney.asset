@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: EarnMoney
   m_EditorClassIdentifier: 
   missionName: Earn money
-  description: Earn 200$ by collecting and selling more scrap
+  description: Collect scrap until you earn earn 200$
   requiredAmount: 200
   progressSuffix: 
   prerequisites:

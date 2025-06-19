@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   items:
   - item: {fileID: 11400000, guid: 916c01daaf63e1049a195711595a40b6, type: 2}
-    price: 5
-    quantity: 69
+    price: 10
+    quantity: 49
   - item: {fileID: 11400000, guid: 6616a251fe59fe04eba2f89dbff7cc59, type: 2}
-    price: 20
-    quantity: 69
+    price: 30
+    quantity: 49
   - item: {fileID: 11400000, guid: 7473ad9c9519ee64ab19bc5a959bcba8, type: 2}
-    price: 50
-    quantity: 69
+    price: 70
+    quantity: 49

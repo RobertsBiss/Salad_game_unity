@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using System.Collections.Generic;
 
 public class BringItemsToNPCTrigger : MonoBehaviour
 {
@@ -9,7 +10,7 @@ public class BringItemsToNPCTrigger : MonoBehaviour
     public string playerTag = "Player";
     public KeyCode interactKey = KeyCode.E;
     public string[] toolsItemNames = { "knife", "bowl", "fork", "cutting board" }; // For tools
-    public string[] ingredientsItemNames = { "tomato", "avocado", "cabbage", "onion", "carrot", "paprika" }; // For ingredients, extend as needed
+    public string[] ingredientsItemNames = { "tomato", "avocado", "cabbage", "onion", "carrot", "paprica" }; // For ingredients, extend as needed
 
     [Header("UI Feedback (Optional)")]
     public GameObject interactionPrompt; // Assign a UI prompt if desired
@@ -22,11 +23,14 @@ public class BringItemsToNPCTrigger : MonoBehaviour
     private Mission currentMission;
     private string[] currentRequiredItems;
     private bool waitingForNextMission = false;
-    private bool justCompletedMission = false;
 
     void Start()
     {
-        inventoryManager = FindObjectOfType<InventoryManager>();
+        // Find inventory manager if not assigned
+        if (inventoryManager == null)
+        {
+            inventoryManager = FindFirstObjectByType<InventoryManager>();
+        }
         if (interactionPrompt != null)
             interactionPrompt.SetActive(false);
         // Start with the first mission
@@ -78,42 +82,72 @@ public class BringItemsToNPCTrigger : MonoBehaviour
         bool isCompleted = missionManager.IsMissionCompleted(currentMission);
         if (!isActive || isCompleted || waitingForNextMission) return;
 
-        // Check for all required items
-        InventorySlot[] slots = inventoryManager.inventorySlots;
-        bool[] hasItem = new bool[currentRequiredItems.Length];
-        int[] slotIndex = new int[currentRequiredItems.Length];
-        for (int i = 0; i < currentRequiredItems.Length; i++)
+        // Define required amounts for ingredients
+        Dictionary<string, int> requiredAmounts = new Dictionary<string, int>();
+        if (currentMission == bringIngredientsMission)
         {
-            hasItem[i] = false;
-            slotIndex[i] = -1;
-            for (int s = 0; s < slots.Length; s++)
+            requiredAmounts["tomato"] = 2;
+            requiredAmounts["carrot"] = 3;
+            requiredAmounts["onion"] = 2;
+            requiredAmounts["cabbage"] = 1;
+            requiredAmounts["avocado"] = 1;
+            requiredAmounts["paprica"] = 1;
+        }
+        else if (currentMission == bringToolsMission)
+        {
+            foreach (var tool in toolsItemNames)
+                requiredAmounts[tool] = 1;
+        }
+        else
+        {
+            foreach (var item in currentRequiredItems)
+                requiredAmounts[item] = 1;
+        }
+
+        // Check for all required items and amounts
+        InventorySlot[] slots = inventoryManager.inventorySlots;
+        Dictionary<string, int> foundAmounts = new Dictionary<string, int>();
+        foreach (var req in requiredAmounts)
+            foundAmounts[req.Key] = 0;
+        for (int s = 0; s < slots.Length; s++)
+        {
+            InventoryItem itemInSlot = slots[s].GetComponentInChildren<InventoryItem>();
+            if (itemInSlot != null && itemInSlot.item != null)
             {
-                InventoryItem itemInSlot = slots[s].GetComponentInChildren<InventoryItem>();
-                if (itemInSlot != null && itemInSlot.item != null && itemInSlot.item.name.ToLower().Contains(currentRequiredItems[i]))
+                string itemName = itemInSlot.item.name.ToLower();
+                foreach (var req in requiredAmounts.Keys)
                 {
-                    if (itemInSlot.count > 0)
+                    if (itemName.Contains(req))
                     {
-                        hasItem[i] = true;
-                        slotIndex[i] = s;
-                        break;
+                        foundAmounts[req] += itemInSlot.count;
                     }
                 }
             }
         }
-        // If player has all items
+        // If player has all required amounts
         bool allItems = true;
-        foreach (bool b in hasItem) if (!b) allItems = false;
+        foreach (var req in requiredAmounts)
+        {
+            if (foundAmounts[req.Key] < req.Value)
+            {
+                allItems = false;
+                break;
+            }
+        }
         if (allItems)
         {
-            // Remove 1 of each item
-            for (int i = 0; i < currentRequiredItems.Length; i++)
+            // Remove the required amounts from inventory
+            foreach (var req in requiredAmounts)
             {
-                if (slotIndex[i] >= 0)
+                int toRemove = req.Value;
+                for (int s = 0; s < slots.Length && toRemove > 0; s++)
                 {
-                    InventoryItem itemInSlot = slots[slotIndex[i]].GetComponentInChildren<InventoryItem>();
-                    if (itemInSlot != null)
+                    InventoryItem itemInSlot = slots[s].GetComponentInChildren<InventoryItem>();
+                    if (itemInSlot != null && itemInSlot.item != null && itemInSlot.item.name.ToLower().Contains(req.Key))
                     {
-                        itemInSlot.count--;
+                        int removeCount = Mathf.Min(itemInSlot.count, toRemove);
+                        itemInSlot.count -= removeCount;
+                        toRemove -= removeCount;
                         if (itemInSlot.count <= 0)
                             Destroy(itemInSlot.gameObject);
                         else
@@ -145,7 +179,6 @@ public class BringItemsToNPCTrigger : MonoBehaviour
                         tmpComp.text = deliveredIngredientsText;
                 }
                 CancelInvoke(nameof(HidePrompt));
-                justCompletedMission = true;
                 interactionPrompt.SetActive(true);
                 Invoke(nameof(HidePrompt), 2f);
             }
@@ -167,7 +200,6 @@ public class BringItemsToNPCTrigger : MonoBehaviour
         currentMission = bringIngredientsMission;
         currentRequiredItems = ingredientsItemNames;
         waitingForNextMission = false;
-        justCompletedMission = false; // Allow prompt for new mission
         // Optionally, show the prompt for the next mission
         if (interactionPrompt != null)
         {
@@ -188,6 +220,5 @@ public class BringItemsToNPCTrigger : MonoBehaviour
     {
         if (interactionPrompt != null)
             interactionPrompt.SetActive(false);
-        // Do not reset justCompletedMission here; only reset when a new mission is set
     }
 }

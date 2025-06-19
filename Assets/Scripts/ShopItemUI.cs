@@ -10,14 +10,18 @@ public class ShopItemUI : MonoBehaviour
     public TMP_Text quantityText;
     public Button buyButton;
 
+    [Header("Audio")]
+    public AudioClip buySound;
+    public AudioSource audioSource; // Optional, can be assigned in inspector
+
     private ShopItemEntry entry;
     private MoneyManager moneyManager;
     private InventoryManager inventoryManager;
 
     void Start()
     {
-        moneyManager = FindObjectOfType<MoneyManager>();
-        inventoryManager = FindObjectOfType<InventoryManager>();
+        moneyManager = FindFirstObjectByType<MoneyManager>();
+        inventoryManager = FindFirstObjectByType<InventoryManager>();
     }
 
     public void Setup(ShopItemEntry entry)
@@ -37,8 +41,8 @@ public class ShopItemUI : MonoBehaviour
 
     void Buy()
     {
-        if (moneyManager == null) moneyManager = FindObjectOfType<MoneyManager>();
-        if (inventoryManager == null) inventoryManager = FindObjectOfType<InventoryManager>();
+        if (moneyManager == null) moneyManager = FindFirstObjectByType<MoneyManager>();
+        if (inventoryManager == null) inventoryManager = FindFirstObjectByType<InventoryManager>();
         if (entry.quantity <= 0) return;
         if (moneyManager.playerMoney < entry.price) return;
 
@@ -48,8 +52,17 @@ public class ShopItemUI : MonoBehaviour
         entry.quantity--;
         if (quantityText != null) quantityText.text = "x" + entry.quantity;
 
+        // Play buy sound effect
+        if (buySound != null)
+        {
+            if (audioSource != null)
+                audioSource.PlayOneShot(buySound);
+            else
+                AudioSource.PlayClipAtPoint(buySound, Camera.main != null ? Camera.main.transform.position : Vector3.zero);
+        }
+
         // Try to fetch hand scale/offsets from an existing ItemPickup in the scene
-        ItemPickup[] pickups = GameObject.FindObjectsOfType<ItemPickup>(true); // include inactive
+        ItemPickup[] pickups = GameObject.FindObjectsByType<ItemPickup>(FindObjectsSortMode.None); // include inactive
         ItemPickup foundPickup = null;
         foreach (var pickup in pickups)
         {

@@ -35,7 +35,6 @@ public class CrateController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI interactionPrompt; // Changed to TextMeshProUGUI
     [SerializeField] private string openPromptText = "[E] Open";
     [SerializeField] private string closePromptText = "[E] Close";
-    [SerializeField] private string sellPromptText = "[E] Sell Scrap";
 
     [Header("Audio (Optional)")]
     [SerializeField] private AudioClip openSound;
@@ -45,9 +44,6 @@ public class CrateController : MonoBehaviour
 
     [Header("Visual Effects (Optional)")]
     [SerializeField] private GameObject sellEffect; // Optional particle effect when selling
-
-    [Header("Debug Settings")]
-    [SerializeField] private bool showDebugLogs = true;
 
     // Private variables
     private bool isOpen = false;
@@ -94,7 +90,7 @@ public class CrateController : MonoBehaviour
         // Find MoneyManager if not assigned
         if (moneyManager == null)
         {
-            moneyManager = FindObjectOfType<MoneyManager>();
+            moneyManager = FindFirstObjectByType<MoneyManager>();
             if (moneyManager == null)
             {
                 Debug.LogWarning("CrateController: MoneyManager not found! Please assign it in the inspector or make sure it exists in the scene.");
@@ -132,7 +128,7 @@ public class CrateController : MonoBehaviour
         else
         {
             // Fallback: try to find by FirstPersonController
-            FirstPersonController playerController = FindObjectOfType<FirstPersonController>();
+            FirstPersonController playerController = FindFirstObjectByType<FirstPersonController>();
             if (playerController != null)
             {
                 playerTransform = playerController.transform;

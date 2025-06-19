@@ -15,7 +15,7 @@ MonoBehaviour:
   missionName: Deliver the ingredients
   description: Bring all the ingredients you bought in the store to Sweet. You can
     find him at his house
-  requiredAmount: 6
+  requiredAmount: 10
   progressSuffix: 
   prerequisites:
   - {fileID: 11400000, guid: ba8e7c36b947a1c4da50c057591c8ec7, type: 2}

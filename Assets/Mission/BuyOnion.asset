@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5848374d148d2aa4d8c089b0ee9ea5e7, type: 3}
   m_Name: BuyOnion
   m_EditorClassIdentifier: 
-  missionName: Buy an onion
-  description: Find the store which sells onions and buy one
-  requiredAmount: 1
+  missionName: Buy onions
+  description: Find the store which sells onions and buy two of them
+  requiredAmount: 2
   progressSuffix: 
   prerequisites:
   - {fileID: 11400000, guid: be33dc0f103597245972505acf9406d0, type: 2}

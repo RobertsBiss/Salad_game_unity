@@ -27,7 +27,7 @@ public class OpenInventory : MonoBehaviour
         // Find FirstPersonController if not assigned
         if (firstPersonController == null)
         {
-            firstPersonController = FindObjectOfType<FirstPersonController>();
+            firstPersonController = FindFirstObjectByType<FirstPersonController>();
         }
 
         // Setup interaction prompt canvas group
@@ -78,7 +78,7 @@ public class OpenInventory : MonoBehaviour
 
     private bool IsAnyShopOpen()
     {
-        ShopTrigger[] shopTriggers = FindObjectsOfType<ShopTrigger>();
+        ShopTrigger[] shopTriggers = FindObjectsByType<ShopTrigger>(FindObjectsSortMode.None);
         foreach (var shopTrigger in shopTriggers)
         {
             if (shopTrigger != null && shopTrigger.mainShop != null && shopTrigger.mainShop.activeSelf)
@@ -91,7 +91,7 @@ public class OpenInventory : MonoBehaviour
 
     private bool IsAnyMissionOpen()
     {
-        var missionTriggers = FindObjectsOfType<MissionTrigger>();
+        var missionTriggers = FindObjectsByType<MissionTrigger>(FindObjectsSortMode.None);
         foreach (var trigger in missionTriggers)
         {
             if (trigger != null && trigger.missionContainer != null && trigger.missionContainer.activeSelf)

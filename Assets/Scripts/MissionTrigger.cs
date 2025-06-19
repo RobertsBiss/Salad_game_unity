@@ -21,7 +21,6 @@ public class MissionTrigger : MonoBehaviour
 
     private bool missionOpen = false;
     private bool isOpeningMission = false;
-    private bool playerInRange = false;
 
     void Start()
     {
@@ -40,13 +39,13 @@ public class MissionTrigger : MonoBehaviour
         // Find player controller if not assigned
         if (playerController == null)
         {
-            playerController = FindObjectOfType<FirstPersonController>();
+            playerController = FindFirstObjectByType<FirstPersonController>();
         }
 
         // Find camera controller if not assigned
         if (cameraController == null)
         {
-            cameraController = FindObjectOfType<FirstPersonController>();
+            cameraController = FindFirstObjectByType<FirstPersonController>();
         }
 
         // Hide mission container at start
@@ -70,7 +69,6 @@ public class MissionTrigger : MonoBehaviour
         // Check if the entering object is the player
         if (other.CompareTag(playerTag) && !missionOpen && !isOpeningMission)
         {
-            playerInRange = true;
             OpenMissionScreen();
         }
     }
@@ -80,7 +78,7 @@ public class MissionTrigger : MonoBehaviour
         // Check if the exiting object is the player
         if (other.CompareTag(playerTag))
         {
-            playerInRange = false;
+            // No need to set playerInRange to false as it's not used in the new code
         }
     }
 

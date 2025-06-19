@@ -45,7 +45,7 @@ public class ScrapSpawner : MonoBehaviour
     void Start()
     {
         // Find the inventory manager
-        inventoryManager = FindObjectOfType<InventoryManager>();
+        inventoryManager = FindFirstObjectByType<InventoryManager>();
         if (inventoryManager == null)
         {
             Debug.LogError("ScrapSpawner: InventoryManager not found! Make sure it exists in the scene.");
@@ -55,7 +55,7 @@ public class ScrapSpawner : MonoBehaviour
         // Find the crate controller if not assigned
         if (crateController == null)
         {
-            crateController = FindObjectOfType<CrateController>();
+            crateController = FindFirstObjectByType<CrateController>();
             if (crateController == null)
             {
                 Debug.LogError("ScrapSpawner: CrateController not found! Please assign it in the inspector or make sure it exists in the scene.");
@@ -386,7 +386,7 @@ public class ScrapSpawner : MonoBehaviour
 
         // Get hand display settings from the first manually placed instance of this item in the scene
         // Look for preset items that are already configured with the correct hand settings
-        ItemPickup[] existingPickups = FindObjectsOfType<ItemPickup>();
+        ItemPickup[] existingPickups = FindObjectsByType<ItemPickup>(FindObjectsSortMode.None);
         bool foundPreset = false;
 
         foreach (ItemPickup existingPickup in existingPickups)
@@ -406,6 +406,13 @@ public class ScrapSpawner : MonoBehaviour
                 if (existingPickup.transform.localScale != Vector3.one)
                 {
                     spawnedItem.transform.localScale = existingPickup.transform.localScale;
+                }
+
+                // Copy the pickup sound using reflection
+                var soundField = typeof(ItemPickup).GetField("pickupSound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (soundField != null)
+                {
+                    soundField.SetValue(pickup, soundField.GetValue(existingPickup));
                 }
 
                 foundPreset = true;
@@ -778,7 +785,7 @@ public class ScrapSpawner : MonoBehaviour
         Debug.Log("=== ScrapSpawner Preset Item Debug ===");
 
         // Find all preset items
-        ItemPickup[] allPickups = FindObjectsOfType<ItemPickup>();
+        ItemPickup[] allPickups = FindObjectsByType<ItemPickup>(FindObjectsSortMode.None);
         Dictionary<Item, List<ItemPickup>> presetItems = new Dictionary<Item, List<ItemPickup>>();
 
         foreach (ItemPickup pickup in allPickups)

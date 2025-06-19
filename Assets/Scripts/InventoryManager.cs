@@ -34,7 +34,7 @@ public class InventoryManager : MonoBehaviour
 
     private void Update()
     {
-        // Number key input (1–8) for hotbar
+        // Number key input (1ï¿½8) for hotbar
         if (Input.inputString != null)
         {
             bool isNumber = int.TryParse(Input.inputString, out int number);
@@ -241,6 +241,20 @@ public class InventoryManager : MonoBehaviour
             pickup.item = item;
             pickup.pickupRange = 0.5f;
             pickup.pickupKey = KeyCode.E;
+        }
+        // Copy pickupSound from a reference ItemPickup in the scene (if available)
+        ItemPickup[] allPickups = GameObject.FindObjectsByType<ItemPickup>(FindObjectsSortMode.None);
+        foreach (var refPickup in allPickups)
+        {
+            if (refPickup != pickup && refPickup.item == item)
+            {
+                var soundField = typeof(ItemPickup).GetField("pickupSound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (soundField != null)
+                {
+                    soundField.SetValue(pickup, soundField.GetValue(refPickup));
+                }
+                break;
+            }
         }
 
         // Apply drop force
@@ -511,7 +525,7 @@ public class InventoryManager : MonoBehaviour
             string missionName = mission.missionName.ToLower();
 
             // Check if this is a buy mission for the added item
-            if ((missionName.Contains("buy a ") || missionName.Contains("buy an ")) &&
+            if ((missionName.Contains("buy a ") || missionName.Contains("buy an ") || missionName.Contains("buy carrots") || missionName.Contains("buy onions") || missionName.Contains("buy tomatoes")) &&
                 (missionName.Contains(itemName) ||
                  (itemName.Contains("knife") && missionName.Contains("knife")) ||
                  (itemName.Contains("bowl") && missionName.Contains("bowl")) ||

@@ -67,6 +67,30 @@ public class ItemPickup : MonoBehaviour
         originalWorldScale = transform.localScale;
         calculatedHandScale = originalWorldScale; // Default to original scale
 
+        // If this is a spawned item (not manually placed), copy hand settings from a reference in the scene
+        if (item != null)
+        {
+            ItemPickup[] allPickups = GameObject.FindObjectsByType<ItemPickup>(FindObjectsSortMode.None);
+            foreach (var pickup in allPickups)
+            {
+                if (pickup != this && pickup.item == this.item)
+                {
+                    // Copy hand display settings
+                    this.handScaleMultiplier = pickup.handScaleMultiplier;
+                    this.handPositionOffset = pickup.handPositionOffset;
+                    this.handRotationOffset = pickup.handRotationOffset;
+                    this.calculatedHandScale = pickup.calculatedHandScale;
+                    // Copy the pickup sound using reflection
+                    var soundField = typeof(ItemPickup).GetField("pickupSound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (soundField != null)
+                    {
+                        soundField.SetValue(this, soundField.GetValue(pickup));
+                    }
+                    break;
+                }
+            }
+        }
+
         // Auto-configure item settings if enabled
         if (autoConfigureFromPrefab && item != null)
         {
@@ -81,7 +105,9 @@ public class ItemPickup : MonoBehaviour
 
         // Find inventory manager if not assigned
         if (inventoryManager == null)
-            inventoryManager = FindObjectOfType<InventoryManager>();
+        {
+            inventoryManager = FindFirstObjectByType<InventoryManager>();
+        }
 
         // Find player transform and camera for distance checking
         FindPlayer();
@@ -110,7 +136,7 @@ public class ItemPickup : MonoBehaviour
         }
 
         // Fallback: try to find by FirstPersonController component
-        FirstPersonController playerController = FindObjectOfType<FirstPersonController>();
+        FirstPersonController playerController = FindFirstObjectByType<FirstPersonController>();
         if (playerController != null)
         {
             playerTransform = playerController.transform;

@@ -39,7 +39,7 @@ public class ShopTrigger : MonoBehaviour
         }
 
         // Find OpenInventory component
-        openInventory = FindObjectOfType<OpenInventory>();
+        openInventory = FindFirstObjectByType<OpenInventory>();
     }
 
     private void Update()

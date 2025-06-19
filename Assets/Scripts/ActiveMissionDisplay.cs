@@ -17,8 +17,7 @@ public class ActiveMissionDisplay : MonoBehaviour
 
     void Start()
     {
-        // Hide initially
-        SetVisibility(false);
+        // Removed SetVisibility(false); to prevent hiding at start
 
         // Subscribe to mission updates
         if (MissionManager.Instance != null)

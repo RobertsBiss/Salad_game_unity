@@ -30,7 +30,7 @@ public class MissionManager : MonoBehaviour
         // Find ActiveMissionDisplay if not assigned
         if (activeMissionDisplay == null)
         {
-            activeMissionDisplay = FindObjectOfType<ActiveMissionDisplay>();
+            activeMissionDisplay = FindFirstObjectByType<ActiveMissionDisplay>();
         }
     }
 
@@ -138,7 +138,7 @@ public class MissionManager : MonoBehaviour
 
     public void UpdateCollectMissionsFromInventory()
     {
-        var inventory = FindObjectOfType<InventoryManager>();
+        var inventory = FindFirstObjectByType<InventoryManager>();
         if (inventory == null)
         {
             Debug.LogWarning("[MissionManager] InventoryManager not found in scene.");
@@ -163,7 +163,7 @@ public class MissionManager : MonoBehaviour
 
     public void UpdateEarnMoneyMission()
     {
-        var moneyManager = FindObjectOfType<MoneyManager>();
+        var moneyManager = FindFirstObjectByType<MoneyManager>();
         if (moneyManager == null)
         {
             Debug.LogWarning("[MissionManager] MoneyManager not found in scene.");
@@ -187,7 +187,7 @@ public class MissionManager : MonoBehaviour
 
     public void UpdateBuyItemMissions()
     {
-        var inventory = FindObjectOfType<InventoryManager>();
+        var inventory = FindFirstObjectByType<InventoryManager>();
         if (inventory == null)
         {
             Debug.LogWarning("[MissionManager] InventoryManager not found in scene.");
@@ -203,10 +203,10 @@ public class MissionManager : MonoBehaviour
                 lowerName.Contains("buy a cutting board") ||
                 lowerName.Contains("buy an avocado") ||
                 lowerName.Contains("buy a cabbage") ||
-                lowerName.Contains("buy a carrot") ||
-                lowerName.Contains("buy an onion") ||
-                lowerName.Contains("buy a paprika") ||
-                lowerName.Contains("buy a tomato")
+                lowerName.Contains("buy carrots") ||
+                lowerName.Contains("buy onions") ||
+                lowerName.Contains("buy a paprica") ||
+                lowerName.Contains("buy tomatoes")
             )
             {
                 if (!IsMissionCompleted(mission))
@@ -218,10 +218,10 @@ public class MissionManager : MonoBehaviour
                     else if (lowerName.Contains("cutting board")) targetItem = "cutting board";
                     else if (lowerName.Contains("avocado")) targetItem = "avocado";
                     else if (lowerName.Contains("cabbage")) targetItem = "cabbage";
-                    else if (lowerName.Contains("carrot")) targetItem = "carrot";
-                    else if (lowerName.Contains("onion")) targetItem = "onion";
-                    else if (lowerName.Contains("paprika")) targetItem = "paprika";
-                    else if (lowerName.Contains("tomato")) targetItem = "tomato";
+                    else if (lowerName.Contains("carrots")) targetItem = "carrot";
+                    else if (lowerName.Contains("onions")) targetItem = "onion";
+                    else if (lowerName.Contains("paprica")) targetItem = "paprica";
+                    else if (lowerName.Contains("tomatoes")) targetItem = "tomato";
 
                     int count = 0;
                     foreach (var slot in inventory.inventorySlots)
@@ -229,8 +229,7 @@ public class MissionManager : MonoBehaviour
                         InventoryItem itemInSlot = slot.GetComponentInChildren<InventoryItem>();
                         if (itemInSlot != null && itemInSlot.item != null && itemInSlot.item.name.ToLower().Contains(targetItem))
                         {
-                            count = itemInSlot.count;
-                            break;
+                            count += itemInSlot.count;
                         }
                     }
                     Debug.Log($"[MissionManager] Updating mission '{mission.missionName}' with count: {count}");

@@ -15,10 +15,10 @@ MonoBehaviour:
   items:
   - item: {fileID: 11400000, guid: 7d5fbe7b39233c44daf0ad39527f734c, type: 2}
     price: 30
-    quantity: 69
+    quantity: 49
   - item: {fileID: 11400000, guid: 9a05ffbbd2ff37d499b81e2e4d6b90e8, type: 2}
-    price: 5
-    quantity: 26
+    price: 7
+    quantity: 49
   - item: {fileID: 11400000, guid: a7f6f4a85924c49419630bd01304824b, type: 2}
-    price: 20
-    quantity: 69
+    price: 25
+    quantity: 49

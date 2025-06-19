@@ -23,7 +23,9 @@ public class InventoryItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     {
         // Find inventory manager if not assigned
         if (inventoryManager == null)
-            inventoryManager = FindObjectOfType<InventoryManager>();
+        {
+            inventoryManager = FindFirstObjectByType<InventoryManager>();
+        }
     }
 
     public void InitialiseItem(Item newItem)
