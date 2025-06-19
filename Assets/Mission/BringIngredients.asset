@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5848374d148d2aa4d8c089b0ee9ea5e7, type: 3}
+  m_Name: BringIngredients
+  m_EditorClassIdentifier: 
+  missionName: Deliver the ingredients
+  description: Bring all the ingredients you bought in the store to Sweet. You can
+    find him at his house
+  requiredAmount: 6
+  progressSuffix: 
+  prerequisites:
+  - {fileID: 11400000, guid: ba8e7c36b947a1c4da50c057591c8ec7, type: 2}
+  - {fileID: 11400000, guid: 0fe085163e6d9bf46bfada556c4eb823, type: 2}
+  - {fileID: 11400000, guid: 5217b95908dc09545924c761faa1d174, type: 2}
+  - {fileID: 11400000, guid: 9d4a75535a0dc054da6f6c3fa62075f9, type: 2}
+  - {fileID: 11400000, guid: f664285488e4466438e7cf4bd34ac9e2, type: 2}
+  - {fileID: 11400000, guid: ca3cf6feeab378e4da7fa6e2a507eb31, type: 2}

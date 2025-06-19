@@ -361,6 +361,10 @@ public class CrateController : MonoBehaviour
                 {
                     soldItemDetails.Add(itemPickup.item.name);
                 }
+
+                // Mission progress for selling
+                if (MissionManager.Instance != null)
+                    MissionManager.Instance.OnItemSold(itemPickup.item, 1);
             }
         }
 

@@ -48,6 +48,9 @@ public class MoneyManager : MonoBehaviour
         {
             ShowMoneyGain(amount);
         }
+
+        // Update earn money missions immediately when money changes
+        UpdateEarnMoneyMissions();
     }
 
     public void SubtractMoney(int amount)
@@ -60,6 +63,9 @@ public class MoneyManager : MonoBehaviour
         {
             ShowMoneyGain(-amount);
         }
+
+        // Update earn money missions immediately when money changes
+        UpdateEarnMoneyMissions();
     }
 
     void UpdateMoneyUI()
@@ -167,5 +173,29 @@ public class MoneyManager : MonoBehaviour
     {
         gainTextColor = gainColor;
         lossTextColor = lossColor;
+    }
+
+    // Update earn money missions when money changes
+    private void UpdateEarnMoneyMissions()
+    {
+        if (MissionManager.Instance == null) return;
+
+        // Check if there are any earn money missions
+        bool hasEarnMoneyMissions = false;
+        foreach (var mission in MissionManager.Instance.allMissions)
+        {
+            if (mission != null && mission.missionName.ToLower().Contains("earn money"))
+            {
+                hasEarnMoneyMissions = true;
+                break;
+            }
+        }
+
+        // If there are earn money missions, update them immediately
+        if (hasEarnMoneyMissions)
+        {
+            MissionManager.Instance.UpdateEarnMoneyMission();
+            MissionManager.Instance.NotifyActiveMissionDisplay();
+        }
     }
 }

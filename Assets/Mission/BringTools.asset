@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5848374d148d2aa4d8c089b0ee9ea5e7, type: 3}
+  m_Name: BringTools
+  m_EditorClassIdentifier: 
+  missionName: Deliver the kitchen utensils
+  description: Bring the items you bought in the store to Sweet. You can find him
+    at his house
+  requiredAmount: 4
+  progressSuffix: 
+  prerequisites:
+  - {fileID: 11400000, guid: 7e79388236e925e41b8787beb18421bb, type: 2}
+  - {fileID: 11400000, guid: 4bcbc682b8525fc438b44f9853b9690e, type: 2}
+  - {fileID: 11400000, guid: 09944d7fed7cf8948b595a59707004e1, type: 2}
+  - {fileID: 11400000, guid: ef90930cb2757e043b3fb0a01119864a, type: 2}

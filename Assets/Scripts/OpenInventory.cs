@@ -59,7 +59,8 @@ public class OpenInventory : MonoBehaviour
         // Check for toggle key press
         if (Input.GetKeyDown(toggleKey))
         {
-            ToggleInventory();
+            if (!IsAnyMissionOpen())
+                ToggleInventory();
         }
 
         // Manage interaction prompt blocking based on inventory state
@@ -88,10 +89,21 @@ public class OpenInventory : MonoBehaviour
         return false;
     }
 
+    private bool IsAnyMissionOpen()
+    {
+        var missionTriggers = FindObjectsOfType<MissionTrigger>();
+        foreach (var trigger in missionTriggers)
+        {
+            if (trigger != null && trigger.missionContainer != null && trigger.missionContainer.activeSelf)
+                return true;
+        }
+        return false;
+    }
+
     public void ToggleInventory()
     {
-        // Don't allow inventory to open if any shop is open
-        if (IsAnyShopOpen())
+        // Don't allow inventory to open if any shop or mission is open
+        if (IsAnyShopOpen() || IsAnyMissionOpen())
         {
             return;
         }

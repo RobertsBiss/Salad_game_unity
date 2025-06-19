@@ -337,6 +337,10 @@ public class InventoryManager : MonoBehaviour
                 itemInSlot.count++;
                 itemInSlot.RefreshCount();
                 UpdateHeldItem(forceUpdate: true); // Update held item in case it's affected
+
+                // Update buy missions immediately when item is added
+                UpdateBuyMissionsForItem(item);
+
                 return true;
             }
         }
@@ -351,6 +355,10 @@ public class InventoryManager : MonoBehaviour
             {
                 SpawnNewItem(item, slot);
                 UpdateHeldItem(forceUpdate: true); // Update held item in case it's affected
+
+                // Update buy missions immediately when item is added
+                UpdateBuyMissionsForItem(item);
+
                 return true;
             }
         }
@@ -471,5 +479,61 @@ public class InventoryManager : MonoBehaviour
         }
 
         return null;
+    }
+
+    public int GetItemCountByType(ItemType type)
+    {
+        int count = 0;
+        foreach (var slot in inventorySlots)
+        {
+            InventoryItem itemInSlot = slot.GetComponentInChildren<InventoryItem>();
+            if (itemInSlot != null && itemInSlot.item.type == type)
+            {
+                count += itemInSlot.count;
+            }
+        }
+        return count;
+    }
+
+    // Update buy missions when a specific item is added to inventory
+    private void UpdateBuyMissionsForItem(Item addedItem)
+    {
+        if (MissionManager.Instance == null) return;
+
+        // Check if this item matches any buy missions
+        string itemName = addedItem.name.ToLower();
+        bool shouldUpdate = false;
+
+        foreach (var mission in MissionManager.Instance.allMissions)
+        {
+            if (mission == null) continue;
+
+            string missionName = mission.missionName.ToLower();
+
+            // Check if this is a buy mission for the added item
+            if ((missionName.Contains("buy a ") || missionName.Contains("buy an ")) &&
+                (missionName.Contains(itemName) ||
+                 (itemName.Contains("knife") && missionName.Contains("knife")) ||
+                 (itemName.Contains("bowl") && missionName.Contains("bowl")) ||
+                 (itemName.Contains("fork") && missionName.Contains("fork")) ||
+                 (itemName.Contains("cutting board") && missionName.Contains("cutting board")) ||
+                 (itemName.Contains("avocado") && missionName.Contains("avocado")) ||
+                 (itemName.Contains("cabbage") && missionName.Contains("cabbage")) ||
+                 (itemName.Contains("carrot") && missionName.Contains("carrot")) ||
+                 (itemName.Contains("onion") && missionName.Contains("onion")) ||
+                 (itemName.Contains("paprika") && missionName.Contains("paprika")) ||
+                 (itemName.Contains("tomato") && missionName.Contains("tomato"))))
+            {
+                shouldUpdate = true;
+                break;
+            }
+        }
+
+        // If this item affects any buy missions, update them immediately
+        if (shouldUpdate)
+        {
+            MissionManager.Instance.UpdateBuyItemMissions();
+            MissionManager.Instance.NotifyActiveMissionDisplay();
+        }
     }
 }

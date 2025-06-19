@@ -20,8 +20,8 @@ public class ItemPickup : MonoBehaviour
     public bool showDebugLogs = false; // Enable to see debug messages
 
     [Header("Hand Display Configuration")]
-    [SerializeField] private bool autoConfigureFromPrefab = true; // Automatically configure the Item's hand settings based on this prefab
-    [SerializeField] private bool forceReconfigure = false; // Force reconfigure even if settings exist
+    [SerializeField] public bool autoConfigureFromPrefab = true; // Automatically configure the Item's hand settings based on this prefab
+    [SerializeField] public bool forceReconfigure = false; // Force reconfigure even if settings exist
     [SerializeField] private Vector3 handPositionOffset = Vector3.zero;
     [SerializeField] private Vector3 handRotationOffset = Vector3.zero;
     [SerializeField] public Vector3 handScaleMultiplier = Vector3.one;
@@ -310,6 +310,10 @@ public class ItemPickup : MonoBehaviour
 
                 if (staticPickupPrompt != null)
                     staticPickupPrompt.SetActive(false);
+
+                // Mission progress for collection
+                if (MissionManager.Instance != null)
+                    MissionManager.Instance.OnItemCollected(item);
 
                 Destroy(gameObject); // Remove this object from the scene
             }

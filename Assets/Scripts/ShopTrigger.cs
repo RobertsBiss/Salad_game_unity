@@ -85,7 +85,16 @@ public class ShopTrigger : MonoBehaviour
 
         // Disable player and camera controls after delay
         if (playerController != null)
-            playerController.enabled = false;
+        {
+            var fpc = playerController as FirstPersonController;
+            if (fpc != null)
+            {
+                fpc.SetMovementEnabled(false);
+                fpc.SetLookingEnabled(false);
+            }
+            else
+                playerController.enabled = false;
+        }
         if (cameraController != null)
             cameraController.enabled = false;
 
@@ -115,7 +124,16 @@ public class ShopTrigger : MonoBehaviour
         shopOpen = false;
 
         if (playerController != null)
-            playerController.enabled = true;
+        {
+            var fpc = playerController as FirstPersonController;
+            if (fpc != null)
+            {
+                fpc.SetMovementEnabled(true);
+                fpc.SetLookingEnabled(true);
+            }
+            else
+                playerController.enabled = true;
+        }
         if (cameraController != null)
             cameraController.enabled = true;
 

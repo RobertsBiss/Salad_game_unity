@@ -385,17 +385,58 @@ public class ScrapSpawner : MonoBehaviour
         pickup.pickupKey = KeyCode.E;
 
         // Get hand display settings from the first manually placed instance of this item in the scene
+        // Look for preset items that are already configured with the correct hand settings
         ItemPickup[] existingPickups = FindObjectsOfType<ItemPickup>();
+        bool foundPreset = false;
+
         foreach (ItemPickup existingPickup in existingPickups)
         {
-            if (existingPickup.item == item)
+            // Skip the item we just created
+            if (existingPickup == pickup) continue;
+
+            // Check if this is a preset item with the same item type
+            if (existingPickup.item == item && existingPickup.gameObject != spawnedItem)
             {
-                // Copy settings from the first matching item we find
+                // Copy all hand display settings from the preset
                 pickup.HandScaleMultiplier = existingPickup.HandScaleMultiplier;
                 pickup.HandPositionOffset = existingPickup.HandPositionOffset;
                 pickup.HandRotationOffset = existingPickup.HandRotationOffset;
+
+                // Also copy the original world scale if available
+                if (existingPickup.transform.localScale != Vector3.one)
+                {
+                    spawnedItem.transform.localScale = existingPickup.transform.localScale;
+                }
+
+                foundPreset = true;
+
+                if (showDebugLogs)
+                {
+                    Debug.Log($"ScrapSpawner: Copied hand settings from preset '{existingPickup.gameObject.name}' to spawned item");
+                }
                 break;
             }
+        }
+
+        // If no preset was found, try to get settings from the InventoryManager's scale data
+        if (!foundPreset && inventoryManager != null)
+        {
+            // The InventoryManager should have the scale data for this item
+            // This will be handled by the ItemPickup's AutoConfigureItemSettings method
+            pickup.autoConfigureFromPrefab = true;
+            pickup.forceReconfigure = true;
+
+            if (showDebugLogs)
+            {
+                Debug.Log($"ScrapSpawner: No preset found for {item.name}, using auto-configuration");
+            }
+        }
+
+        // Ensure the pickup component is properly configured
+        // This will call AutoConfigureItemSettings if autoConfigureFromPrefab is true
+        if (pickup.autoConfigureFromPrefab)
+        {
+            pickup.ReconfigureItemSettings();
         }
 
         return spawnedItem;
@@ -699,5 +740,80 @@ public class ScrapSpawner : MonoBehaviour
                 Gizmos.DrawLine(spawnPoints[i].position, spawnPoints[i + 1].position);
             }
         }
+    }
+
+    /// <summary>
+    /// Refreshes hand display settings for all spawned items
+    /// Useful for debugging or when preset items are modified
+    /// </summary>
+    [ContextMenu("Refresh All Spawned Item Settings")]
+    public void RefreshAllSpawnedItemSettings()
+    {
+        foreach (var kvp in spawnedItems)
+        {
+            if (kvp.Value != null)
+            {
+                ItemPickup pickup = kvp.Value.GetComponent<ItemPickup>();
+                if (pickup != null)
+                {
+                    // Force reconfigure the settings
+                    pickup.forceReconfigure = true;
+                    pickup.ReconfigureItemSettings();
+
+                    if (showDebugLogs)
+                    {
+                        Debug.Log($"ScrapSpawner: Refreshed settings for spawned item at {kvp.Key.name}");
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Debug method to show which preset items are being used for hand display settings
+    /// </summary>
+    [ContextMenu("Debug Preset Item Usage")]
+    public void DebugPresetItemUsage()
+    {
+        Debug.Log("=== ScrapSpawner Preset Item Debug ===");
+
+        // Find all preset items
+        ItemPickup[] allPickups = FindObjectsOfType<ItemPickup>();
+        Dictionary<Item, List<ItemPickup>> presetItems = new Dictionary<Item, List<ItemPickup>>();
+
+        foreach (ItemPickup pickup in allPickups)
+        {
+            if (pickup.item != null && !spawnedItems.ContainsValue(pickup.gameObject))
+            {
+                // This is a preset item (not spawned)
+                if (!presetItems.ContainsKey(pickup.item))
+                {
+                    presetItems[pickup.item] = new List<ItemPickup>();
+                }
+                presetItems[pickup.item].Add(pickup);
+            }
+        }
+
+        // Show preset items for each scrap item type
+        foreach (Item scrapItem in scrapItems)
+        {
+            if (scrapItem != null)
+            {
+                Debug.Log($"Scrap Item: {scrapItem.name}");
+                if (presetItems.ContainsKey(scrapItem))
+                {
+                    foreach (ItemPickup preset in presetItems[scrapItem])
+                    {
+                        Debug.Log($"  - Preset: {preset.gameObject.name} | Scale: {preset.HandScaleMultiplier} | Pos: {preset.HandPositionOffset} | Rot: {preset.HandRotationOffset}");
+                    }
+                }
+                else
+                {
+                    Debug.Log("  - No preset found, will use auto-configuration");
+                }
+            }
+        }
+
+        Debug.Log("=== End Debug ===");
     }
 }
